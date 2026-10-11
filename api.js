@@ -35,7 +35,7 @@ function renderNotes(notes) {
 
     const delBtn = document.createElement('button');
     delBtn.textContent = 'Delete';
-    delBtn.addEventListener('click', () => deleteNote(note.id));
+    delBtn.addEventListener('click', () => deleteNote(note.id, li));
 
     li.appendChild(title);
     li.appendChild(body);
@@ -73,14 +73,22 @@ async function createNote(title, body) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, body, userId: 1 })
     });
+
     const li = document.createElement('li');
     const titleEl = document.createElement('h3');
     titleEl.textContent = newNote.title;
     const bodyEl = document.createElement('p');
     bodyEl.textContent = newNote.body;
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Delete';
+    delBtn.addEventListener('click', () => deleteNote(newNote.id, li));
+
     li.appendChild(titleEl);
     li.appendChild(bodyEl);
+    li.appendChild(delBtn);
     notesList.insertBefore(li, notesList.firstChild);
+
     statusEl.textContent = `Note created (status 201, id ${newNote.id}).`;
     statusEl.className = 'success';
   } catch (err) {
@@ -93,16 +101,13 @@ async function createNote(title, body) {
 }
 
 // DELETE: Remove note
-async function deleteNote(id) {
+async function deleteNote(id, li) {
   statusEl.textContent = 'Deleting note...';
   statusEl.className = '';
   try {
     await request(`${API_URL}/${id}`, { method: 'DELETE' });
-    // JSONPlaceholder doesn't persist deletes, so we remove from UI only
-    const li = Array.from(notesList.children).find(li =>
-      li.querySelector('h3')?.textContent && li.querySelector('button')
-    );
-    if (li) li.remove();
+    // JSONPlaceholder does not persist deletes, so we remove from UI only
+    li.remove();
     statusEl.textContent = `Note ${id} deleted (status 200).`;
     statusEl.className = 'success';
   } catch (err) {
